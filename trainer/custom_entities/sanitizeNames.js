@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-const fileName = __dirname + '/sys_first_name';
+const fileName = __dirname + '/sys_last_name';
 /**
  * Removes unusual names from base
  * - Names with only two letters
@@ -15,4 +15,3 @@ const sanitized = firstNames.filter((name) => {
 console.log('after', sanitized.length);
 
 fs.writeFileSync(fileName, sanitized.join('\n'));
-

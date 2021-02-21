@@ -1072,12 +1072,12 @@
     },
     "rules": {
       "pt": {
-        "sanitizeFirstName.js": {
-          "name": "sanitizeFirstName.js",
+        "sanitizeNames.js": {
+          "name": "sanitizeNames.js",
           "type": "enum",
           "rules": [
             {
-              "option": "sanitizeFirstName.js",
+              "option": "sanitizeNames.js",
               "texts": [
                 "const fs = require('fs');",
                 "const fileName = __dirname + '/sys_first_name';",
