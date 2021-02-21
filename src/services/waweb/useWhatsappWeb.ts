@@ -1,9 +1,6 @@
 import { Client, ClientOptions } from 'whatsapp-web.js';
 import { useLegacyState } from '../../utils/useLegacyState';
 import { useCallback } from 'react';
-// import Store from 'electron-store';
-//
-// const store = new Store();
 
 let client: Client | undefined;
 
@@ -22,9 +19,18 @@ export const useWhatsappWeb = (config: ClientOptions = {}) => {
       let sessionData;
       if (fs.existsSync(sessionFilePath)) {
         sessionData = JSON.parse(fs.readFileSync(sessionFilePath).toString());
-        sessionData = sessionData && Object.keys(sessionData).length && sessionData || undefined;
+        sessionData =
+          (sessionData && Object.keys(sessionData).length && sessionData) ||
+          undefined;
       }
-      client = new Client({ session: sessionData, ...config });
+      client = new Client({
+        session: sessionData,
+        ...config,
+        puppeteer: {
+          headless: false,
+          devtools: true,
+        },
+      });
     }
     client.on('qr', (qr) => {
       // Generate and scan this code with your phone

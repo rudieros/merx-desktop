@@ -16,6 +16,7 @@ export const MessagesPage: React.FC<RouteComponentProps> = ({ history }) => {
       client.on('message', (m) => {
         console.log('m', m);
         setMessagesReceived((om) => [m, ...om]);
+        return m.getChat();
       });
       client.on('message_create', (m) => {
         console.log('message_create', m);

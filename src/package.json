@@ -15,7 +15,12 @@
   },
   "license": "MIT",
   "dependencies": {
+    "better-sqlite3": "^7.1.2",
     "qrcode.react": "^1.0.1",
+    "typeorm": "^0.2.30",
     "whatsapp-web.js": "^1.12.1"
+  },
+  "devDependencies": {
+    "ts-node": "^9.1.1"
   }
 }

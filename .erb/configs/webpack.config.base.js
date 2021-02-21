@@ -8,7 +8,6 @@ import { dependencies as externals } from '../../src/package.json';
 
 export default {
   externals: [...Object.keys(externals || {})],
-
   module: {
     rules: [
       {
@@ -42,5 +41,6 @@ export default {
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'production',
     }),
+    new webpack.BannerPlugin('require("reflect-metadata");')
   ],
 };
