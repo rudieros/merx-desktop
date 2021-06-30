@@ -24,7 +24,7 @@ export class BotCore {
   }
 
   private startMessageExchanges() {
-    this.chatInterface.listenIncomingToMessages((m) => {
+    this.chatInterface.registerMessageSender((m) => {
       log('Messages Received from chat interface', m);
       return this.brain.ingestMessages(m);
     });
@@ -32,9 +32,9 @@ export class BotCore {
       log('Messages Sent to chat interface', content);
       return this.chatInterface.sendMessages(content);
     });
-    this.brain.registerReplyingMessagesListener((content) => {
-      log('Messages Sent to chat interface', content);
-      return this.chatInterface.sendMessages(content);
-    });
+    // this.brain.registerReplyingMessagesListener((content) => {
+    //   log('Messages Sent to chat interface', content);
+    //   return this.chatInterface.sendMessages(content);
+    // });
   }
 }

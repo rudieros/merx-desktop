@@ -26,4 +26,8 @@ export interface HumanLikeBrainDataStore {
   markMessageAsResolved(message: Message): Promise<void>;
 
   getActiveSessionForChat(chat: Chat): Promise<Session | undefined>;
+
+  saveSession(session: Session): Promise<Session | undefined>;
+
+  deleteSession(session: Session): Promise<boolean>;
 }

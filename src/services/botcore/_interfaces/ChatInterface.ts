@@ -4,7 +4,7 @@ import { Chat } from './Chat';
 
 export interface ChatInterface {
   id: string;
-  listenIncomingToMessages(
+  registerMessageSender(
     listener: (messages: Message[]) => Promise<void>
   ): void;
   sendMessages(

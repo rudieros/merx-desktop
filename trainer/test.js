@@ -2,41 +2,20 @@ const { dockStart } = require('@nlpjs/basic');
 const { NlpManager, Language } = require('node-nlp');
 const fs = require('fs');
 
-const fileExtension = '.txt';
-const utteranceFiles = fs.readdirSync(`${__dirname}/utterances`);
-const customEntityFiles = fs.readdirSync(`${__dirname}/custom_entities`);
-
-let utteranceIntentMap = utteranceFiles.reduce((acc, curr) => {
-  const intent = curr.replace(fileExtension, '');
-  const utterances = fs
-    .readFileSync(`${__dirname}/utterances/${curr}`)
-    .toString();
-  return {
-    ...acc,
-    [intent]: utterances.split('\n').filter((s) => !!s),
-  };
-}, {});
-
-const entityMap = customEntityFiles.reduce((acc, curr) => {
-  const entity = curr.replace(fileExtension, '');
-  const utterances = fs
-    .readFileSync(`${__dirname}/custom_entities/${curr}`)
-    .toString();
-  return {
-    ...acc,
-    [entity]: utterances.split('\n').filter((s) => !!s),
-  };
-}, {});
-
 (async () => {
-  const nlp = new NlpManager({ languages: ['pt'], forceNER: true });
+  const nlp = new NlpManager({ languages: ['pt'], forceNER: true, ner: { threshold: 1, builtins: [] } });
   nlp.addLanguage('pt');
 
+  const one = Date.now();
   await nlp.load();
+  const two = Date.now();
+  console.log(`Lodaded model in ${(two - one) / 1000} seconds`);
 
   const response = await nlp.process(
     'pt',
-    'gostaria de marcar uma consulta para depois de amanhã de manhã as 10h com a Patricia'
+    'Olá boa tarde, gostaria de marcar uma consulta pra amanhã, meu nome é Caio Simões'
   );
+
   console.log(JSON.stringify(response, null, 2));
+  console.log(`Processed phrase in ${(Date.now() - two) / 1000} seconds`);
 })();

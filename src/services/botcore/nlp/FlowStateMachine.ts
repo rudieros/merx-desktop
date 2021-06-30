@@ -13,10 +13,13 @@ export class FlowStateMachine {
   private responses = [];
 
   private initialState = 'initial-state';
+
   private finalState = 'final-state';
 
+  private paramsFilled: { [paramId: string]: Entity };
+
   constructor(
-    private previousState = this.initialState,
+    private previousState = 'initial-state',
     private context: { entities?: Entity[] },
     private nlp: Nlp
   ) {
@@ -39,7 +42,7 @@ export class FlowStateMachine {
             },
             // exit: ['log'],
           },
-          [finalState]: { final: true },
+          [finalState]: { type: 'final' },
           greeting: {
             exit: ['onFulfilled'],
             always: [{ target: finalState }],
@@ -49,11 +52,11 @@ export class FlowStateMachine {
           },
           schedule_appointment: {
             on: {
-              '*': {
+              ['*' as any]: {
                 actions: assign({
                   slot: 100,
                 }),
-              },
+              } as any,
             },
             entry: ['onEntry'],
             exit: ['onFulfilled'],
@@ -64,20 +67,31 @@ export class FlowStateMachine {
               params: [
                 {
                   id: 'patient_name',
+                  displayName: 'Nome do Paciente',
                   type: 'sys_person',
                   required: true,
                   fulfillmentMessageId: 'provide_name_fulfillment',
                 },
                 {
                   id: 'patient_cpf',
+                  displayName: 'Cpf do Paciente',
                   type: 'sys_cpf',
                   required: false,
                 },
                 {
                   id: 'schedule_date',
+                  displayName: 'Data desejada',
                   type: 'sys_date',
                   required: true,
                   fulfillmentMessageId: 'provide_schedule_date_fulfillment',
+                },
+                {
+                  id: 'schedule_doc_specialty',
+                  displayName: 'Especialidade',
+                  type: 'doc_specialties',
+                  required: true,
+                  fulfillmentMessageId:
+                    'provide_schedule_doc_specialty_fulfillment',
                 },
               ],
             },
@@ -97,11 +111,11 @@ export class FlowStateMachine {
             }
           },
           onEntry: (context, event, meta) => {
-            const fulfillmentMessageId =
-              meta.state?.transitions[0]?.source?.meta?.fulfillmentMessageId;
-            if (fulfillmentMessageId) {
-              this.registerMessage(fulfillmentMessageId);
-            }
+            // const fulfillmentMessageId =
+            //   meta.state?.transitions[0]?.source?.meta?.fulfillmentMessageId;
+            // if (fulfillmentMessageId) {
+            //   this.registerMessage(fulfillmentMessageId);
+            // }
           },
         },
         guards: {
@@ -114,16 +128,18 @@ export class FlowStateMachine {
                 return { ...acc, [param.id]: param.type };
               }, {})
             );
+            this.paramsFilled = parametersFilled;
             const isFilled = thisStateParams?.every((param) => {
               const isThisParamFilled =
                 (param.required && !!parametersFilled[param.id]) ||
                 !param.required;
               if (!isThisParamFilled) {
+                console.log('First param not filled', param.id)
                 this.registerMessage(param.fulfillmentMessageId);
               }
               return isThisParamFilled;
             });
-            console.log('isFilled', isFilled)
+            console.log('isFilled', isFilled);
             return isFilled;
           },
         },
@@ -132,9 +148,12 @@ export class FlowStateMachine {
   }
 
   getResponse(intentId: string) {
+    if (!intentId) {
+      console.log(`Intent not here: ${intentId}`);
+    }
     const transitionResult = this.machine.transition(
       this.previousState,
-      intentId
+      intentId || 'mock'
     );
     transitionResult.actions.forEach((a) => {
       a.exec(transitionResult.context, transitionResult.event, {
@@ -144,9 +163,11 @@ export class FlowStateMachine {
       });
     });
     return {
-      nextState: transitionResult.value,
+      nextState: transitionResult.value as string,
       changedState: transitionResult.changed,
       responses: this.responses,
+      paramsFilled: this.paramsFilled,
+      done: transitionResult.done,
     };
   }
 
@@ -167,9 +188,7 @@ export class FlowStateMachine {
     return this.loadResponse(unmatchedIntentId);
   }
 
-  public getPageSchema(flowId: string, pageId: string) {
-    return this.schema[flowId]?.[pageId];
-  }
+  public getPageSchema(flowId: string, pageId: string) {}
 
   private mountStateId(flowId: string, pageId: string) {
     return `${flowId}${this.separator}${pageId}`;

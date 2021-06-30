@@ -40,10 +40,9 @@ export const createHumanLikeBrainStateMachine = (brain?: HumanLikeBrain) => {
           },
         },
         [s.TYPING_ANSWER]: {
-          entry: ['notify', 'typeMessage'],
+          entry: ['notify', 'typeMessageReply'],
           on: {
-            [e.GIVE_UP_AFTER_READING_MESSAGE]: s.LOOKING_FOR_MESSAGE_TO_ENGAGE,
-            [e.START_TYPING_REPLY]: s.TYPING_ANSWER,
+            [e.FINISHED_REPLYING]: s.IDLE,
           },
         },
       },

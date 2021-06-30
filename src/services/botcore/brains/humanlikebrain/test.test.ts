@@ -29,7 +29,7 @@ describe('Test', () => {
   test('ssss', async () => {
     const nlp = new DefaultNLP();
     const intent = await nlp.getIntentFromText(
-      'Olá boa tarde, gostaria de marcar uma consulta pra amanhã, meu nome é Patricia'
+      'Olá boa tarde, gostaria de marcar uma consulta pra amanhã, tem como?'
     );
     const machine = new FlowStateMachine(
       undefined,

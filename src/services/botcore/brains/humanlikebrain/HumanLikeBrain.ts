@@ -26,14 +26,14 @@ export class HumanLikeBrain implements Brain {
 
   // @ts-ignore
   private replyListener: (
-    input: Array<{ content: Message; config: MessageReplyConfig }>
+    input: Array<{ content: Message; config?: MessageReplyConfig }>
   ) => Promise<void>;
 
   private markMessageAsReadListener: (input: Message) => Promise<void>;
 
   private toggleIsTypingListener: (
     message: Message,
-    duration: number,
+    durationMillis: number,
     isTyping: boolean
   ) => Promise<void>;
 
@@ -115,7 +115,7 @@ export class HumanLikeBrain implements Brain {
     if (!message.read) {
       await Promise.all([
         this.store.markMessageAsRead(message),
-        this.markMessageAsReadListener(message),
+        this.markMessageAsReadListener?.(message),
       ]);
     }
     const shouldSkipThisMessage =
@@ -136,38 +136,79 @@ export class HumanLikeBrain implements Brain {
       this.config.maxReadingDurationMillis
     );
     await getTimer(timeToReadMessage);
-    this.interpreter.send(e.START_TYPING_REPLY);
+    this.interpreter.send({ type: e.START_TYPING_REPLY, message });
   }
 
   public async typeMessageReply(message: Message) {
+    console.log('Typing for chat id', message.chat.id);
     let session = await this.store.getActiveSessionForChat(message.chat);
     if (!session || this.checkSessionExpired(session)) {
+      console.log(
+        'Did not find session',
+        session && this.checkSessionExpired(session)
+      );
       session = this.buildFreshSessionForMessage(message);
+    } else {
+      console.log('Found session', session);
     }
     const resolvedIntent = await this.nlp.getIntentFromText(message.body);
+    console.log('resolvedIntent entities', resolvedIntent);
 
     const stateMachine = new FlowStateMachine(
-      undefined,
-      { entities: resolvedIntent.extractedEntities },
+      session.currentStateId,
+      {
+        entities: [
+          ...resolvedIntent.extractedEntities,
+          ...Object.values(session.context.params || {}),
+        ],
+      },
       this.nlp
     );
     const response = stateMachine.getResponse(resolvedIntent.id);
+    console.log('Extracted params', response.paramsFilled);
 
-    // if (!resolvedIntent.id) {
-    //   // todo get unmatched response and verify mandatory params
-    //   textResponse = this.flowStateMachine.getUnmatchedIntentResponse(
-    //     session.targetFlowId,
-    //     session.targetPageId
-    //   );
-    // } else {
-    //
-    // }
-    this.toggleIsTypingListener(message);
+    session.currentStateId = response.nextState;
+    session.lastMessage = message;
+    session.context = {
+      params: {
+        ...(session.context?.params || {}),
+        ...(response.paramsFilled || {}),
+      },
+    };
+
+    if (response.done) {
+      console.log('Deleting session');
+      await this.store.deleteSession(session);
+    } else {
+      console.log('Saving session', session.context);
+      await this.store.saveSession(session);
+    }
+
+    await this.toggleIsTypingListener?.(message, 1500, true);
+
+    await this.replyListener([
+      {
+        config: {},
+        content: {
+          body: response.responses.join('\n'),
+          chat: message.chat,
+          read: true,
+          receivedAt: message.receivedAt,
+        },
+      },
+    ]);
+
+    this.interpreter.send(e.FINISHED_REPLYING);
   }
 
   private checkSessionExpired(session: Session) {
+    console.log(
+      'expired',
+      Date.now() - session.createdAt.getTime(),
+      this.config.sessionExpirationSeconds * 1000
+    );
     return (
-      Date.now() - session.createdAt.getDate() >
+      Date.now() - session.createdAt.getTime() >
       this.config.sessionExpirationSeconds * 1000
     );
   }

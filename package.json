@@ -264,7 +264,7 @@
     "electron-store": "^7.0.0",
     "electron-updater": "^4.3.4",
     "history": "^5.0.0",
-    "node-nlp": "^4.20.0",
+    "node-nlp": "^4.21.3",
     "normal-distribution": "^0.0.9",
     "react": "^17.0.1",
     "react-chat-ui": "^0.4.0",

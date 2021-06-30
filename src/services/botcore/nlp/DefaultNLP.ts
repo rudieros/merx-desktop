@@ -9,13 +9,15 @@ export class DefaultNLP implements Nlp {
   private language = 'pt';
 
   constructor() {
-    this.nlp = new NlpManager({ languages: ['pt'], forceNER: true });
+    this.nlp = new NlpManager({
+      languages: ['pt'],
+      forceNER: true,
+      ner: { threshold: 1, builtins: [] },
+    });
     this.nlp.load();
   }
 
-  async getIntentFromText(
-    text: string,
-  ): Promise<Intent> {
+  async getIntentFromText(text: string): Promise<Intent> {
     const response = await this.nlp.process(this.language, text);
     return Promise.resolve({
       id: response.intent === 'None' ? null : response.intent,
@@ -87,13 +89,15 @@ export class DefaultNLP implements Nlp {
       });
     return [
       ...entities,
-      ...sysPerson.map((sysPersonEntity) => {
-        return {
-          type: 'sys_person',
-          resolvedValue: sysPersonEntity.map((e) => e.utteranceText),
-          sourceText: sysPersonEntity.map((e) => e.sourceText)?.join(' '),
-        };
-      }),
+      ...sysPerson
+        .sort((a, b) => b.length - a.length)
+        .map((sysPersonEntity) => {
+          return {
+            type: 'sys_person',
+            resolvedValue: sysPersonEntity.map((e) => e.utteranceText),
+            sourceText: sysPersonEntity.map((e) => e.sourceText)?.join(' '),
+          };
+        }),
     ];
   }
 

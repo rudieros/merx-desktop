@@ -6,7 +6,7 @@ const fileExtension = '.txt';
 const utteranceFiles = fs.readdirSync(`${__dirname}/utterances`);
 const customEntityFiles = fs.readdirSync(`${__dirname}/custom_entities`);
 
-let utteranceIntentMap = utteranceFiles.reduce((acc, curr) => {
+const utteranceIntentMap = utteranceFiles.reduce((acc, curr) => {
   const intent = curr.replace(fileExtension, '');
   const utterances = fs
     .readFileSync(`${__dirname}/utterances/${curr}`)
@@ -40,9 +40,14 @@ const entityMap = customEntityFiles.reduce((acc, curr) => {
 
   Object.keys(entityMap).forEach((entity) => {
     entityMap[entity].forEach((entitySample) => {
-      if (entitySample.split('=')[0] === 'regex') {
+      const [modifier, entityOptionName, actualSample] = entitySample.split('=');
+      if (modifier === 'regex') {
         const regex = new RegExp(entitySample.split('=')[1]);
         nlp.addRegexEntity(entity, ['pt'], regex);
+        return;
+      }
+      if (modifier === '_n') {
+        nlp.addNamedEntityText(entity, entityOptionName, ['pt'], actualSample);
         return;
       }
       nlp.addNamedEntityText(entity, entity, ['pt'], entitySample);
@@ -54,7 +59,7 @@ const entityMap = customEntityFiles.reduce((acc, curr) => {
 
   const response = await nlp.process(
     'pt',
-    'gostaria de marcar uma consulta para depois de amanhã de manhã as 10h com a Patricia'
+    'gostaria de marcar uma consulta para depois de amanhã de manhã as 10h com a Patricia a oncologista'
   );
   console.log(JSON.stringify(response, null, 2));
 })();

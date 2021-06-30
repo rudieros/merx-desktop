@@ -74,7 +74,7 @@ export const humanLikeBrainDefaultConfig: Partial<HumanLikeBrainConfig> = {
   minIntervalBetweenTypingAndSendMillis: 300,
   maxIntervalBetweenTypingAndSendMillis: 6 * 1000,
 
-  sessionExpirationSeconds: 60,
+  sessionExpirationSeconds: 60 * 60 * 24,
 
   dataStore: new HumanLikeBrainInMemoryDataStore(),
 

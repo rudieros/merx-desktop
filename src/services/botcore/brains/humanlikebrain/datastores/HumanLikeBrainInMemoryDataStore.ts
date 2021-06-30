@@ -9,7 +9,7 @@ export class HumanLikeBrainInMemoryDataStore
 
   private allMessages: Message[] = [];
 
-  private sessionsByChat: { [chatId: string]: Session };
+  private sessionsByChat: { [chatId: string]: Session } = {};
 
   saveMessage(message: MessageWithMetadata): Promise<void> {
     message.__messagesByChatIdIndex =
@@ -47,7 +47,8 @@ export class HumanLikeBrainInMemoryDataStore
   }
 
   async markMessageAsRead(message: MessageWithMetadata): Promise<void> {
-    this.allMessages[message.__allMessagesIndex].read = true;
+    if (this.allMessages[message.__allMessagesIndex]?.read)
+      this.allMessages[message.__allMessagesIndex].read = true;
   }
 
   async markMessageAsResolved(message: MessageWithMetadata): Promise<void> {
@@ -55,7 +56,19 @@ export class HumanLikeBrainInMemoryDataStore
   }
 
   async getActiveSessionForChat(chat: Chat): Promise<Session | undefined> {
-    return Promise.resolve(this.sessionsByChat[chat.id]);
+    console.log('Sessions here', JSON.stringify(this.sessionsByChat[chat.id], null, 2))
+    return this.sessionsByChat[chat.id];
+  }
+
+  async saveSession(session: Session): Promise<Session | undefined> {
+    this.sessionsByChat[session.chat.id] = session;
+    console.log('Sessions after saving', JSON.stringify(this.sessionsByChat, null, 2))
+    return Promise.resolve(session);
+  }
+
+  async deleteSession(session: Session): Promise<boolean> {
+    delete this.sessionsByChat[session.chat.id];
+    return true;
   }
 }
 

@@ -1,18 +1,14 @@
-import { Chat } from './Chat';
-import { Message } from './Message';
+import { Chat } from './Chat'
+import { Message } from './Message'
+import { Entity } from './Intent'
 
 export interface Session {
   chat: Chat;
-  currentFlowId?: string;
-  currentPageId?: string;
-  targetFlowId?: string;
-  targetPageId?: string;
+  currentStateId?: string;
+  targetStateId?: string;
   context: {
-    params: {
-      [parameterId: string]: {
-        type: string;
-        value: string | number | Date;
-      };
+    params?: {
+      [parameterId: string]: Entity;
     };
   };
   lastMessage?: Message;

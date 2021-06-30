@@ -1,6 +1,6 @@
 const fs = require('fs');
 
-const fileName = __dirname + '/sys_last_name';
+const fileName = __dirname + '/sys_first_name';
 /**
  * Removes unusual names from base
  * - Names with only two letters
